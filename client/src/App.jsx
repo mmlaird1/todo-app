@@ -6,6 +6,8 @@ function App() {
   const [newTodoText, setNewTodoText] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isAdding, setIsAdding] = useState(false);
+  const [pendingIds, setPendingIds] = useState(new Set());
 
   // Fetch todos when the component first mounts
   useEffect(() => {
@@ -23,34 +25,69 @@ function App() {
     fetchTodos();
   }, []);
 
-  const handleAdd = async () => {
-    if (newTodoText.trim() === '') return;
+  // Auto-dismiss errors after 5 seconds
+  useEffect(() => {
+    if (!error) return;
+    const timeoutId = setTimeout(() => setError(null), 5000);
+    return () => clearTimeout(timeoutId);
+  }, [error]);
 
+  const handleAdd = async () => {
+    const text = newTodoText.trim();
+    if (text === '' || isAdding) return;
+
+    setIsAdding(true);
     try {
-      const newTodo = await createTodo(newTodoText);
+      const newTodo = await createTodo(text);
       setTodos([newTodo, ...todos]);
       setNewTodoText('');
     } catch (err) {
-      setError('Failed to add todo');
+      setError('Failed to add todo. Please try again.');
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleAdd();
     }
   };
 
   const handleToggle = async (id, currentCompleted) => {
+    if (pendingIds.has(id)) return;
+
+    setPendingIds((prev) => new Set(prev).add(id));
     try {
       const updated = await updateTodo(id, { completed: !currentCompleted });
       setTodos(todos.map((todo) => (todo._id === id ? updated : todo)));
     } catch (err) {
-      setError('Failed to update todo');
+      setError('Failed to update todo. Please try again.');
+    } finally {
+      setPendingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     }
   };
 
   const handleDelete = async (id) => {
+    if (pendingIds.has(id)) return;
+
+    setPendingIds((prev) => new Set(prev).add(id));
     try {
       await deleteTodo(id);
       setTodos(todos.filter((todo) => todo._id !== id));
     } catch (err) {
-      setError('Failed to delete todo');
+      setError('Failed to delete todo. Please try again.');
+      setPendingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     }
+    // Note: on success, the item is removed from todos, so no need to clean up pendingIds
   };
 
   if (loading) return <p>Loading todos...</p>;
@@ -59,37 +96,66 @@ function App() {
     <div>
       <h1>Todo App</h1>
 
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && (
+        <div style={{ color: 'red', marginBottom: '1rem' }}>
+          <span>{error}</span>
+          <button
+            onClick={() => setError(null)}
+            style={{ marginLeft: '0.5rem' }}
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       <div>
         <input
           type="text"
           value={newTodoText}
           onChange={(e) => setNewTodoText(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="What needs to be done?"
+          disabled={isAdding}
         />
-        <button onClick={handleAdd}>Add</button>
+        <button onClick={handleAdd} disabled={isAdding || newTodoText.trim() === ''}>
+          {isAdding ? 'Adding...' : 'Add'}
+        </button>
       </div>
 
-      <ul>
-        {todos.map((todo) => (
-          <li key={todo._id}>
-            <input
-              type="checkbox"
-              checked={todo.completed}
-              onChange={() => handleToggle(todo._id, todo.completed)}
-            />
-            <span
-              style={{
-                textDecoration: todo.completed ? 'line-through' : 'none',
-              }}
-            >
-              {todo.text}
-            </span>
-            <button onClick={() => handleDelete(todo._id)}>Delete</button>
-          </li>
-        ))}
-      </ul>
+      {todos.length === 0 ? (
+        <p style={{ color: '#666', marginTop: '1rem' }}>
+          No todos yet. Add one above to get started.
+        </p>
+      ) : (
+        <ul>
+          {todos.map((todo) => {
+            const isPending = pendingIds.has(todo._id);
+            return (
+              <li key={todo._id} style={{ opacity: isPending ? 0.5 : 1 }}>
+                <input
+                  type="checkbox"
+                  checked={todo.completed}
+                  onChange={() => handleToggle(todo._id, todo.completed)}
+                  disabled={isPending}
+                />
+                <span
+                  style={{
+                    textDecoration: todo.completed ? 'line-through' : 'none',
+                  }}
+                >
+                  {todo.text}
+                </span>
+                <button
+                  onClick={() => handleDelete(todo._id)}
+                  disabled={isPending}
+                >
+                  Delete
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 }
