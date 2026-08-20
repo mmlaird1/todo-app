@@ -2,6 +2,11 @@
 
 A simple full-stack todo list application built with the MERN stack.
 
+**Live Demo:** [https://todo-app-mmlaird.vercel.app](https://todo-app-mmlaird.vercel.app)
+
+> Note: The backend is hosted on Render's free tier, which sleeps after 15 minutes of inactivity. The first request after a period of inactivity may take 30-60 seconds while the service wakes up.
+
+
 ## Tech Stack
 
 - **Frontend:** React (Vite), Axios
