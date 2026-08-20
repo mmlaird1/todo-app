@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getTodos, createTodo, updateTodo, deleteTodo } from './api/todos';
+import './App.css';
 
 function App() {
   const [todos, setTodos] = useState([]);
@@ -9,7 +10,6 @@ function App() {
   const [isAdding, setIsAdding] = useState(false);
   const [pendingIds, setPendingIds] = useState(new Set());
 
-  // Fetch todos when the component first mounts
   useEffect(() => {
     const fetchTodos = async () => {
       try {
@@ -25,7 +25,6 @@ function App() {
     fetchTodos();
   }, []);
 
-  // Auto-dismiss errors after 5 seconds
   useEffect(() => {
     if (!error) return;
     const timeoutId = setTimeout(() => setError(null), 5000);
@@ -87,65 +86,84 @@ function App() {
         return next;
       });
     }
-    // Note: on success, the item is removed from todos, so no need to clean up pendingIds
   };
 
-  if (loading) return <p>Loading todos...</p>;
+  if (loading) {
+    return (
+      <div className="app">
+        <p className="loading">Loading todos...</p>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <h1>Todo App</h1>
+    <div className="app">
+      <header className="app-header">
+        <h1 className="app-title">Todos</h1>
+        <p className="app-subtitle">
+          {todos.length === 0
+            ? 'Nothing to do yet.'
+            : `${todos.filter((t) => !t.completed).length} remaining`}
+        </p>
+      </header>
 
       {error && (
-        <div style={{ color: 'red', marginBottom: '1rem' }}>
+        <div className="error-banner">
           <span>{error}</span>
-          <button
-            onClick={() => setError(null)}
-            style={{ marginLeft: '0.5rem' }}
-          >
+          <button className="error-dismiss" onClick={() => setError(null)}>
             Dismiss
           </button>
         </div>
       )}
 
-      <div>
+      <div className="add-form">
         <input
           type="text"
+          className="add-input"
           value={newTodoText}
           onChange={(e) => setNewTodoText(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="What needs to be done?"
           disabled={isAdding}
         />
-        <button onClick={handleAdd} disabled={isAdding || newTodoText.trim() === ''}>
+        <button
+          className="add-button"
+          onClick={handleAdd}
+          disabled={isAdding || newTodoText.trim() === ''}
+        >
           {isAdding ? 'Adding...' : 'Add'}
         </button>
       </div>
 
       {todos.length === 0 ? (
-        <p style={{ color: '#666', marginTop: '1rem' }}>
-          No todos yet. Add one above to get started.
-        </p>
+        <div className="empty-state">
+          <p className="empty-state-text">
+            No todos yet. Add one above to get started.
+          </p>
+        </div>
       ) : (
-        <ul>
+        <ul className="todo-list">
           {todos.map((todo) => {
             const isPending = pendingIds.has(todo._id);
             return (
-              <li key={todo._id} style={{ opacity: isPending ? 0.5 : 1 }}>
+              <li
+                key={todo._id}
+                className={`todo-item ${isPending ? 'is-pending' : ''}`}
+              >
                 <input
                   type="checkbox"
+                  className="todo-checkbox"
                   checked={todo.completed}
                   onChange={() => handleToggle(todo._id, todo.completed)}
                   disabled={isPending}
                 />
                 <span
-                  style={{
-                    textDecoration: todo.completed ? 'line-through' : 'none',
-                  }}
+                  className={`todo-text ${todo.completed ? 'is-completed' : ''}`}
                 >
                   {todo.text}
                 </span>
                 <button
+                  className="todo-delete"
                   onClick={() => handleDelete(todo._id)}
                   disabled={isPending}
                 >
