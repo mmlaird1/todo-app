@@ -1,42 +1,65 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getTodos, createTodo, updateTodo, deleteTodo } from './api/todos';
 
 function App() {
-  const [todos, setTodos] = useState([
-    { _id: '1', text: 'Learn React', completed: false },
-    { _id: '2', text: 'Build a todo app', completed: true },
-    { _id: '3', text: 'Deploy it', completed: false },
-  ]);
-
+  const [todos, setTodos] = useState([]);
   const [newTodoText, setNewTodoText] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const handleAdd = () => {
-    if (newTodoText.trim() === '') return;
-
-    const newTodo = {
-      _id: Date.now().toString(),
-      text: newTodoText,
-      completed: false,
+  // Fetch todos when the component first mounts
+  useEffect(() => {
+    const fetchTodos = async () => {
+      try {
+        const data = await getTodos();
+        setTodos(data);
+      } catch (err) {
+        setError('Failed to load todos. Is the server running?');
+      } finally {
+        setLoading(false);
+      }
     };
 
-    setTodos([newTodo, ...todos]);
-    setNewTodoText('');
+    fetchTodos();
+  }, []);
+
+  const handleAdd = async () => {
+    if (newTodoText.trim() === '') return;
+
+    try {
+      const newTodo = await createTodo(newTodoText);
+      setTodos([newTodo, ...todos]);
+      setNewTodoText('');
+    } catch (err) {
+      setError('Failed to add todo');
+    }
   };
 
-  const handleToggle = (id) => {
-    setTodos(
-      todos.map((todo) =>
-        todo._id === id ? { ...todo, completed: !todo.completed } : todo
-      )
-    );
+  const handleToggle = async (id, currentCompleted) => {
+    try {
+      const updated = await updateTodo(id, { completed: !currentCompleted });
+      setTodos(todos.map((todo) => (todo._id === id ? updated : todo)));
+    } catch (err) {
+      setError('Failed to update todo');
+    }
   };
 
-  const handleDelete = (id) => {
-    setTodos(todos.filter((todo) => todo._id !== id));
+  const handleDelete = async (id) => {
+    try {
+      await deleteTodo(id);
+      setTodos(todos.filter((todo) => todo._id !== id));
+    } catch (err) {
+      setError('Failed to delete todo');
+    }
   };
+
+  if (loading) return <p>Loading todos...</p>;
 
   return (
     <div>
       <h1>Todo App</h1>
+
+      {error && <p style={{ color: 'red' }}>{error}</p>}
 
       <div>
         <input
@@ -54,7 +77,7 @@ function App() {
             <input
               type="checkbox"
               checked={todo.completed}
-              onChange={() => handleToggle(todo._id)}
+              onChange={() => handleToggle(todo._id, todo.completed)}
             />
             <span
               style={{
