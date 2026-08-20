@@ -25,6 +25,10 @@ router.post('/', async (req, res) => {
     const newTodo = await Todo.create({ text });
     res.status(201).json(newTodo);
   } catch (err) {
+    if (err.name === 'ValidationError') {
+      const firstMessage = Object.values(err.errors)[0]?.message || 'Validation failed';
+      return res.status(400).json({ error: firstMessage });
+    }
     res.status(500).json({ error: 'Failed to create todo' });
   }
 });

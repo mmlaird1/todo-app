@@ -41,7 +41,8 @@ function App() {
       setTodos([newTodo, ...todos]);
       setNewTodoText('');
     } catch (err) {
-      setError('Failed to add todo. Please try again.');
+      const message = err.response?.data?.error || 'Failed to add todo. Please try again.';
+      setError(message);
     } finally {
       setIsAdding(false);
     }
