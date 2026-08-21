@@ -14,8 +14,8 @@ function PasswordGate({ children }) {
 
     setIsSubmitting(true);
     try {
-      const response = await login(passwordInput);
-      setAuthToken(response.data.token);
+      const data = await login(passwordInput);
+      setAuthToken(data.token);
       setIsAuthenticated(true);
     } catch (err) {
       if (err.response?.status === 429) {

@@ -14,26 +14,31 @@ export function setAuthToken(token) {
   }
 }
 
-export function login(password) {
-  return api.post('/auth/login', { password });
+export async function login(password) {
+  const response = await api.post('/auth/login', { password });
+  return response.data;
 }
 
 // ---------- Todos ----------
 
-export function getTodos() {
-  return api.get('/todos');
+export async function getTodos() {
+  const response = await api.get('/todos');
+  return response.data;
 }
 
-export function createTodo(text) {
-  return api.post('/todos', { text });
+export async function createTodo(text) {
+  const response = await api.post('/todos', { text });
+  return response.data;
 }
 
-export function updateTodo(id, updates) {
-  return api.patch(`/todos/${id}`, updates);
+export async function updateTodo(id, updates) {
+  const response = await api.patch(`/todos/${id}`, updates);
+  return response.data;
 }
 
-export function deleteTodo(id) {
-  return api.delete(`/todos/${id}`);
+export async function deleteTodo(id) {
+  const response = await api.delete(`/todos/${id}`);
+  return response.data;
 }
 
 export default api;
