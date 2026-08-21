@@ -3,34 +3,34 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import todoRoutes from './routes/todos.js';
+import authRoutes from './routes/auth.js';
+import requireAuth from './middleware/auth.js';
 
-// Load environment variables from .env
 dotenv.config();
 
-// Create the Express app
 const app = express();
 
-// Middleware
+// Trust the first proxy (Render's load balancer) so req.ip works correctly
+app.set('trust proxy', 1);
+
 const allowedOrigins = [
   'http://localhost:5173',
   process.env.CLIENT_URL,
 ].filter(Boolean);
 
-app.use(
-  cors({
-    origin: allowedOrigins,
-  })
-);
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 
-// Routes
 app.get('/', (req, res) => {
   res.json({ message: 'Todo API is running!' });
 });
 
-app.use('/api/todos', todoRoutes);
+// Public routes (no auth needed)
+app.use('/api/auth', authRoutes);
 
-// Connect to MongoDB, then start the server
+// Protected routes (auth required)
+app.use('/api/todos', requireAuth, todoRoutes);
+
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI;
 

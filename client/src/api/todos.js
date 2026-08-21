@@ -4,13 +4,16 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
 });
 
-export const getTodos = () => api.get('/todos').then((res) => res.data);
+export function setAuthToken(token) {
+  if (token) {
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  } else {
+    delete api.defaults.headers.common['Authorization'];
+  }
+}
 
-export const createTodo = (text) =>
-  api.post('/todos', { text }).then((res) => res.data);
+export function login(password) {
+  return api.post('/auth/login', { password });
+}
 
-export const updateTodo = (id, updates) =>
-  api.patch(`/todos/${id}`, updates).then((res) => res.data);
-
-export const deleteTodo = (id) =>
-  api.delete(`/todos/${id}`).then((res) => res.data);
+export default api;
