@@ -54,33 +54,33 @@ The frontend calls a login endpoint with the password, receives a signed JWT, an
 
 ## Project Structure
 
-todo-app/
-... client/ # React frontend (Vercel)
-...... src/
-......... api/
-............ todos.js # Axios instance + API helpers
-......... App.jsx # Main todo UI
-......... App.css # Styles
-......... PasswordGate.jsx # Login screen wrapper
-......... main.jsx # Entry point
-......... index.css # CSS variables
-...... .env # VITE_API_URL (gitignored)
-...... package.json
-
-... server/ # Express backend (Render)
-...... middleware/
-......... auth.js # JWT verification middleware
-...... models/
-......... Todo.js # Mongoose schema
-...... routes/
-......... auth.js # POST /api/auth/login
-......... todos.js # CRUD for /api/todos
-...... .env # secrets (gitignored)
-...... index.js # Server entry point
-...... package.json
-
-... .gitignore
-... README.md
+todo-app/<br />
+... client/ # React frontend (Vercel)<br />
+...... src/<br />
+......... api/<br />
+............ todos.js # Axios instance + API helpers<br />
+......... App.jsx # Main todo UI<br />
+......... App.css # Styles<br />
+......... PasswordGate.jsx # Login screen wrapper<br />
+......... main.jsx # Entry point<br />
+......... index.css # CSS variables<br />
+...... .env # VITE_API_URL (gitignored)<br />
+...... package.json<br />
+<br />
+... server/ # Express backend (Render)<br />
+...... middleware/<br />
+......... auth.js # JWT verification middleware<br />
+...... models/<br />
+......... Todo.js # Mongoose schema<br />
+...... routes/<br />
+......... auth.js # POST /api/auth/login<br />
+......... todos.js # CRUD for /api/todos<br />
+...... .env # secrets (gitignored)<br />
+...... index.js # Server entry point<br />
+...... package.json<br />
+<br />
+... .gitignore<br />
+... README.md<br />
 
 ## API Reference
 
